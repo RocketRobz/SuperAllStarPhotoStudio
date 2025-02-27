@@ -8,7 +8,7 @@
 What happens when you take the concept of *Super Smash Bros.*, and turn it from a fighting game, into a photo shoot party?     
 The result, a *Super All-Star Photo Studio*! Take pictures of your favorite all-star characters, in any location possible!
 
-*Super All-Star Photo Studio* has it all: An all-star video game cast, well-known outdoor and indoor locations, stylish girls, the coolest of TWL himself, and fan-favorites like like Mario & Luigi, Sonic & Tails, Banjo & Kazooie, and even Waluigi!
+*Super All-Star Photo Studio* has it all: An all-star video game cast, well-known outdoor and indoor locations, stylish girls, the coolest of TWL himself, and fan-favorites like Mario & Luigi, Sonic & Tails, Banjo & Kazooie, and even Waluigi!
 
 # What is this?
 
