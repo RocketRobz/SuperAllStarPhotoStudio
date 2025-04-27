@@ -188,7 +188,7 @@ void GFX::loadSheets() {
 		}
 		bmpImageBuffer[1][i] = image[i*4]>>3 | (image[(i*4)+1]>>3)<<5 | (image[(i*4)+2]>>3)<<10 | BIT(15);
 		if (colorTable) {
-			bmpImageBuffer[1][i] = colorTable[bmpImageBuffer[1][i]];
+			bmpImageBuffer[1][i] = colorTable[bmpImageBuffer[1][i] % 0x8000];
 		}
 		if (charSpriteAlpha[i] == 255) {
 			bmpImageBuffer[0][i] = bmpImageBuffer[1][i];
@@ -221,7 +221,7 @@ void GFX::loadSheets() {
 		}
 		bmpImageBuffer2[1][i] = image[i*4]>>3 | (image[(i*4)+1]>>3)<<5 | (image[(i*4)+2]>>3)<<10 | BIT(15);
 		if (colorTable) {
-			bmpImageBuffer2[1][i] = colorTable[bmpImageBuffer2[1][i]];
+			bmpImageBuffer2[1][i] = colorTable[bmpImageBuffer2[1][i] % 0x8000];
 		}
 		if (charSpriteAlpha[i] == 255) {
 			bmpImageBuffer2[0][i] = bmpImageBuffer2[1][i];
@@ -308,8 +308,8 @@ void GFX::loadBgSprite(void) {
 	if (dsiFeatures()) {
 		swiWaitForVBlank();	// Prevent screen tearing
 		if (colorTable) {
-			dmaFillHalfWords(colorTable[0xFFFF], bgGetGfxPtr(bg2Main), 0x18000);
-			dmaFillHalfWords(colorTable[0xFFFF], bgGetGfxPtr(bg3Main), 0x18000);
+			dmaFillHalfWords(colorTable[0xFFFF % 0x8000], bgGetGfxPtr(bg2Main), 0x18000);
+			dmaFillHalfWords(colorTable[0xFFFF % 0x8000], bgGetGfxPtr(bg3Main), 0x18000);
 		} else {
 			dmaFillHalfWords(0xFFFF, bgGetGfxPtr(bg2Main), 0x18000);
 			dmaFillHalfWords(0xFFFF, bgGetGfxPtr(bg3Main), 0x18000);
@@ -1301,7 +1301,7 @@ ITCM_CODE void GFX::loadCharSpriteMem(const int zoomIn, const bool* flipH) {
 	}
 
 	if (colorTable) {
-		fg = colorTable[fg];
+		fg = colorTable[fg % 0x8000];
 	}
 
 	int buffer = 0;

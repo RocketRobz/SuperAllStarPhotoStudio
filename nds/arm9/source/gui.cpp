@@ -95,7 +95,7 @@ void applyColorLut(u16 *palette, int size) {
 		return;
 	}
 	for (int i = 0; i < size; i++) {
-		palette[i] = colorTable[palette[i]];
+		palette[i] = colorTable[palette[i] % 0x8000];
 	}
 }
 
@@ -103,7 +103,7 @@ void applyColorLut(u16 *palette, int size) {
 void copyPalette16(u16 *dst, const u16 *src, int size) {
 	if (colorTable) {
 		for (int i = 0; i < size; i++) {
-			dst[i] = colorTable[src[i]];
+			dst[i] = colorTable[src[i] % 0x8000];
 		}
 		return;
 	}
@@ -114,7 +114,7 @@ void copyPalette16(u16 *dst, const u16 *src, int size) {
 void copyPalette(u16 *dst, const u16 *src, int size) {
 	if (colorTable) {
 		for (int i = 0; i < size/2; i++) {
-			dst[i] = colorTable[src[i]];
+			dst[i] = colorTable[src[i] % 0x8000];
 		}
 		return;
 	}
@@ -149,14 +149,14 @@ void Gui::init(void) {
 		char colorLutPath[256];
 		sprintf(colorLutPath, "/_nds/colorLut/%s.lut", lutName);
 
-		if (getFileSize(colorLutPath) == 0x20000) {
-			colorTable = new u16[0x20000/sizeof(u16)];
+		if (getFileSize(colorLutPath) == 0x10000) {
+			colorTable = new u16[0x10000/sizeof(u16)];
 
 			file = fopen(colorLutPath, "rb");
-			fread(colorTable, 1, 0x20000, file);
+			fread(colorTable, 1, 0x10000, file);
 			fclose(file);
 
-			tonccpy(VRAM_D, colorTable, 0x20000); // Copy LUT to VRAM
+			tonccpy(VRAM_D, colorTable, 0x10000); // Copy LUT to VRAM
 			delete[] colorTable; // Free up RAM space
 			colorTable = VRAM_D;
 		}
