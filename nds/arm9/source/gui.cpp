@@ -59,9 +59,15 @@ int bg3Sub;
 u16* gfxSub;
 
 u16* colorTable = NULL;
+bool invertedColors = false;
+bool noWhiteFade = false;
 
 // Ported from PAlib (obsolete)
 void SetBrightness(u8 screen, s8 bright) {
+	if ((invertedColors && bright != 0) || (noWhiteFade && bright > 0)) {
+		bright -= bright*2; // Invert brightness to match the inverted colors
+	}
+
 	u16 mode = 1 << 14;
 
 	if (bright < 0) {
@@ -70,7 +76,7 @@ void SetBrightness(u8 screen, s8 bright) {
 	}
 	if (bright > 31)
 		bright = 31;
-	*(vu16 *)(0x0400006C + (0x1000 * screen)) = bright + mode;
+	*(vu16*)(0x0400006C + (0x1000 * screen)) = bright + mode;
 }
 
 // Clear Text.
@@ -90,12 +96,21 @@ void Gui__ChangeBrightness() {
 	SetBrightness(1, (fadecolor==255 ? fadealpha : -fadealpha)/8);
 }
 
-void applyColorLut(u16 *palette, int size) {
+/* void applyColorLut(u16 *palette, int size) {
 	if (!colorTable) {
 		return;
 	}
 	for (int i = 0; i < size; i++) {
 		palette[i] = colorTable[palette[i] % 0x8000];
+	}
+} */
+
+void applyColorLutBitmap(u16 *palette, int size) {
+	if (!colorTable) {
+		return;
+	}
+	for (int i = 0; i < size; i++) {
+		palette[i] = colorTable[palette[i] % 0x8000] | BIT(15);
 	}
 }
 
@@ -155,6 +170,14 @@ void Gui::init(void) {
 			file = fopen(colorLutPath, "rb");
 			fread(colorTable, 1, 0x10000, file);
 			fclose(file);
+
+			invertedColors =
+			  (colorTable[0] >= 0xF000 && colorTable[0] <= 0xFFFF
+			&& colorTable[0x7FFF] >= 0x8000 && colorTable[0x7FFF] <= 0x8FFF);
+			if (!invertedColors) noWhiteFade = (colorTable[0x7FFF] < 0xF000);
+
+			SetBrightness(0, 31);
+			SetBrightness(1, 31);
 
 			tonccpy(VRAM_D, colorTable, 0x10000); // Copy LUT to VRAM
 			delete[] colorTable; // Free up RAM space

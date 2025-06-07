@@ -30,7 +30,7 @@ void ProductIdent::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
 		u16* bgLoc = new u16[256*192];
 		extern int bg2Main;
 		extern int bg3Main;
-		extern void applyColorLut(u16 *palette, int size);
+		extern void applyColorLutBitmap(u16 *palette, int size);
 
 		std::vector<unsigned char> image;
 		unsigned width, height;
@@ -45,9 +45,9 @@ void ProductIdent::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
 			while (dmaBusy(0));
 			delete[] bgLoc;
 		}
-		applyColorLut(bgGetGfxPtr(bg2Main), 0x18000/sizeof(u16));
+		applyColorLutBitmap(bgGetGfxPtr(bg2Main), 0x18000/sizeof(u16));
 		if (dsiFeatures()) {
-			applyColorLut(bgGetGfxPtr(bg3Main), 0x18000/sizeof(u16));
+			applyColorLutBitmap(bgGetGfxPtr(bg3Main), 0x18000/sizeof(u16));
 		}
 		graphicLoaded = true;
 	}

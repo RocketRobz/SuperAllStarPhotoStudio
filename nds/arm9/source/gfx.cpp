@@ -67,7 +67,7 @@ extern int bg3Main;
 extern int bg3Sub;
 
 extern u16* colorTable;
-extern void applyColorLut(u16 *palette, int size);
+extern void applyColorLutBitmap(u16 *palette, int size);
 extern void copyPalette16(u16 *dst, const u16 *src, int size);
 
 extern bool showCursor;
@@ -158,7 +158,7 @@ void GFX::loadSheets() {
 	for(unsigned i=0;i<image.size()/4;i++) {
 		charSpriteMem[i] = image[i*4]>>3 | (image[(i*4)+1]>>3)<<5 | (image[(i*4)+2]>>3)<<10 | BIT(15);
 	}
-	applyColorLut(charSpriteMem, image.size()/4);
+	applyColorLutBitmap(charSpriteMem, image.size()/4);
 	image.clear();
 	lodepng::decode(image, width, height, "nitro:/graphics/gui/title.png");
 	bool alternatePixel = false;
@@ -188,7 +188,7 @@ void GFX::loadSheets() {
 		}
 		bmpImageBuffer[1][i] = image[i*4]>>3 | (image[(i*4)+1]>>3)<<5 | (image[(i*4)+2]>>3)<<10 | BIT(15);
 		if (colorTable) {
-			bmpImageBuffer[1][i] = colorTable[bmpImageBuffer[1][i] % 0x8000];
+			bmpImageBuffer[1][i] = colorTable[bmpImageBuffer[1][i] % 0x8000] | BIT(15);
 		}
 		if (charSpriteAlpha[i] == 255) {
 			bmpImageBuffer[0][i] = bmpImageBuffer[1][i];
@@ -221,7 +221,7 @@ void GFX::loadSheets() {
 		}
 		bmpImageBuffer2[1][i] = image[i*4]>>3 | (image[(i*4)+1]>>3)<<5 | (image[(i*4)+2]>>3)<<10 | BIT(15);
 		if (colorTable) {
-			bmpImageBuffer2[1][i] = colorTable[bmpImageBuffer2[1][i] % 0x8000];
+			bmpImageBuffer2[1][i] = colorTable[bmpImageBuffer2[1][i] % 0x8000] | BIT(15);
 		}
 		if (charSpriteAlpha[i] == 255) {
 			bmpImageBuffer2[0][i] = bmpImageBuffer2[1][i];
@@ -306,14 +306,10 @@ void GFX::loadBgSprite(void) {
 	animateTitle = false;
 
 	if (dsiFeatures()) {
+		const u16 white = colorTable ? (colorTable[0xFFFF % 0x8000] | BIT(15)) : 0xFFFF;
 		swiWaitForVBlank();	// Prevent screen tearing
-		if (colorTable) {
-			dmaFillHalfWords(colorTable[0xFFFF % 0x8000], bgGetGfxPtr(bg2Main), 0x18000);
-			dmaFillHalfWords(colorTable[0xFFFF % 0x8000], bgGetGfxPtr(bg3Main), 0x18000);
-		} else {
-			dmaFillHalfWords(0xFFFF, bgGetGfxPtr(bg2Main), 0x18000);
-			dmaFillHalfWords(0xFFFF, bgGetGfxPtr(bg3Main), 0x18000);
-		}
+		dmaFillHalfWords(white, bgGetGfxPtr(bg2Main), 0x18000);
+		dmaFillHalfWords(white, bgGetGfxPtr(bg3Main), 0x18000);
 	}
 
 	timeOutside = 2;	// Default is Nighttime
@@ -685,9 +681,9 @@ void GFX::loadBgSprite(void) {
 		if ((i % 256) == 255) alternatePixel = !alternatePixel;
 		alternatePixel = !alternatePixel;
 	}
-	applyColorLut(bgSpriteMem, image.size()/4);
+	applyColorLutBitmap(bgSpriteMem, image.size()/4);
 	if (dsiFeatures()) {
-		applyColorLut(bgSpriteMem2, image.size()/4);
+		applyColorLutBitmap(bgSpriteMem2, image.size()/4);
 	}
 
 	bgSpriteLoaded = true;
@@ -766,9 +762,9 @@ void GFX::loadBgSprite(void) {
 				if ((p % 256) == 255) alternatePixel = !alternatePixel;
 				alternatePixel = !alternatePixel;
 			}
-			applyColorLut(bgSpriteMemExt[i-1], image.size()/4);
+			applyColorLutBitmap(bgSpriteMemExt[i-1], image.size()/4);
 			if (dsiFeatures()) {
-				applyColorLut(bgSpriteMemExt2[i-1], image.size()/4);
+				applyColorLutBitmap(bgSpriteMemExt2[i-1], image.size()/4);
 			}
 		}
 		if (studioBg == 64) {
@@ -898,9 +894,9 @@ bool GFX::loadCharSprite(int num, const char* t3xPathPose, const char* t3xPathAl
 			if ((i % 256) == 255) alternatePixel = !alternatePixel;
 			alternatePixel = !alternatePixel;
 		}
-		applyColorLut(usePageFile ? charSpriteMem : charSpriteMem5, image.size()/4);
+		applyColorLutBitmap(usePageFile ? charSpriteMem : charSpriteMem5, image.size()/4);
 		if (dsiFeatures()) {
-			applyColorLut(charSpriteMem5_2, image.size()/4);
+			applyColorLutBitmap(charSpriteMem5_2, image.size()/4);
 		}
 		if (usePageFile) {
 			FILE* pageFile = fopen("fat:/_nds/pagefile.sys", "r+");
@@ -971,9 +967,9 @@ bool GFX::loadCharSprite(int num, const char* t3xPathPose, const char* t3xPathAl
 			if ((i % 256) == 255) alternatePixel = !alternatePixel;
 			alternatePixel = !alternatePixel;
 		}
-		applyColorLut(usePageFile ? charSpriteMem : charSpriteMem4, image.size()/4);
+		applyColorLutBitmap(usePageFile ? charSpriteMem : charSpriteMem4, image.size()/4);
 		if (dsiFeatures()) {
-			applyColorLut(charSpriteMem4_2, image.size()/4);
+			applyColorLutBitmap(charSpriteMem4_2, image.size()/4);
 		}
 		if (usePageFile) {
 			FILE* pageFile = fopen("fat:/_nds/pagefile.sys", "r+");
@@ -1044,9 +1040,9 @@ bool GFX::loadCharSprite(int num, const char* t3xPathPose, const char* t3xPathAl
 			if ((i % 256) == 255) alternatePixel = !alternatePixel;
 			alternatePixel = !alternatePixel;
 		}
-		applyColorLut(usePageFile ? charSpriteMem : charSpriteMem3, image.size()/4);
+		applyColorLutBitmap(usePageFile ? charSpriteMem : charSpriteMem3, image.size()/4);
 		if (dsiFeatures()) {
-			applyColorLut(charSpriteMem3_2, image.size()/4);
+			applyColorLutBitmap(charSpriteMem3_2, image.size()/4);
 		}
 		if (usePageFile) {
 			FILE* pageFile = fopen("fat:/_nds/pagefile.sys", "r+");
@@ -1131,9 +1127,9 @@ bool GFX::loadCharSprite(int num, const char* t3xPathPose, const char* t3xPathAl
 			if ((i % 256) == 255) alternatePixel = !alternatePixel;
 			alternatePixel = !alternatePixel;
 		}
-		applyColorLut(usePageFile ? charSpriteMem : charSpriteMem2, image.size()/4);
+		applyColorLutBitmap(usePageFile ? charSpriteMem : charSpriteMem2, image.size()/4);
 		if (dsiFeatures()) {
-			applyColorLut(charSpriteMem2_2, image.size()/4);
+			applyColorLutBitmap(charSpriteMem2_2, image.size()/4);
 		}
 		if (usePageFile) {
 			FILE* pageFile = fopen("fat:/_nds/pagefile.sys", "r+");
@@ -1196,9 +1192,9 @@ bool GFX::loadCharSprite(int num, const char* t3xPathPose, const char* t3xPathAl
 			if ((i % 256) == 255) alternatePixel = !alternatePixel;
 			alternatePixel = !alternatePixel;
 		}
-		applyColorLut(charSpriteMem, image.size()/4);
+		applyColorLutBitmap(charSpriteMem, image.size()/4);
 		if (dsiFeatures()) {
-			applyColorLut(charSpriteMem_2, image.size()/4);
+			applyColorLutBitmap(charSpriteMem_2, image.size()/4);
 		}
 		if (usePageFile && chracterSpriteFound[1]) {
 			FILE* pageFile = fopen("fat:/_nds/pagefile.sys", "r+");
